@@ -95,9 +95,20 @@ export default async function InvoicesPage({
       ) : (
         <div className="space-y-4">
           {result.items.map((invoice: any) => (
-            <Link key={invoice.id} href={`/invoices/${invoice.id}`}>
-              <InvoiceCard invoice={invoice} />
-            </Link>
+            <InvoiceCard
+              key={invoice.id}
+              invoice={{
+                id: invoice.id,
+                invoiceNumber: invoice.invoiceNumber,
+                status: invoice.status,
+                issueDate: invoice.issueDate,
+                dueDate: invoice.dueDate,
+                total: Number(invoice.total),
+                amountPaid: Number(invoice.amountPaid),
+                currency: invoice.currency,
+                client: { name: invoice.client.name },
+              }}
+            />
           ))}
         </div>
       )}

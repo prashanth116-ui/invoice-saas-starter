@@ -67,8 +67,17 @@ export default async function DashboardPage() {
               {stats.recentInvoices.map((invoice: any) => (
                 <InvoiceCard
                   key={invoice.id}
-                  invoice={invoice}
-                  onView={(id) => `/invoices/${id}`}
+                  invoice={{
+                    id: invoice.id,
+                    invoiceNumber: invoice.invoiceNumber,
+                    status: invoice.status,
+                    issueDate: invoice.issueDate,
+                    dueDate: invoice.dueDate,
+                    total: Number(invoice.total),
+                    amountPaid: Number(invoice.amountPaid),
+                    currency: invoice.currency,
+                    client: { name: invoice.client.name },
+                  }}
                 />
               ))}
             </div>
