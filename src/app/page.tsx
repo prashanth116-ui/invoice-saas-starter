@@ -19,7 +19,7 @@ export default function HomePage() {
                 Log in
               </Link>
               <Button asChild>
-                <Link href="/signup">Get Started Free</Link>
+                <Link href="/sign-up">Get Started Free</Link>
               </Button>
             </div>
           </div>
@@ -41,10 +41,10 @@ export default function HomePage() {
           </p>
           <div className="mt-10 flex items-center justify-center gap-4">
             <Button size="lg" asChild>
-              <Link href="/signup">Start Free Trial</Link>
+              <Link href="/sign-up">Start Free Trial</Link>
             </Button>
             <Button variant="outline" size="lg" asChild>
-              <Link href="/demo">See Demo</Link>
+              <Link href="/sign-up">See Demo</Link>
             </Button>
           </div>
           <p className="mt-4 text-sm text-gray-500">
@@ -155,7 +155,7 @@ export default function HomePage() {
             Join thousands of freelancers and small businesses using InvoiceFlow
           </p>
           <Button size="lg" variant="secondary" asChild>
-            <Link href="/signup">Create Your First Invoice</Link>
+            <Link href="/sign-up">Create Your First Invoice</Link>
           </Button>
         </div>
       </section>
@@ -254,7 +254,7 @@ function PricingCard({
           variant={highlighted ? "default" : "outline"}
           asChild
         >
-          <Link href="/signup">Get Started</Link>
+          <Link href="/sign-up">Get Started</Link>
         </Button>
       </CardContent>
     </Card>
