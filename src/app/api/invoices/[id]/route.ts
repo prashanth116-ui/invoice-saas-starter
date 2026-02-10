@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs";
 import { InvoiceService } from "@/lib/services/invoice.service";
 
+export const dynamic = "force-dynamic";
+
 /**
  * GET /api/invoices/[id] - Get single invoice
  */

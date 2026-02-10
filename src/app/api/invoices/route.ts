@@ -4,6 +4,8 @@ import { InvoiceService } from "@/lib/services/invoice.service";
 import { getOrCreateUser } from "@/lib/auth";
 import type { InvoiceFormData } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 /**
  * GET /api/invoices - List invoices
  */

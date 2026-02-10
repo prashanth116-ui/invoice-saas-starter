@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { InvoiceService } from "@/lib/services/invoice.service";
 
+export const dynamic = "force-dynamic";
+
 // TODO: Replace with actual auth
 const getUserId = () => "user_demo";
 

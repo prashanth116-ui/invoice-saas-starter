@@ -4,6 +4,8 @@ import { ClientService } from "@/lib/services/client.service";
 import { getOrCreateUser } from "@/lib/auth";
 import type { ClientFormData } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 /**
  * GET /api/clients - List clients
  */

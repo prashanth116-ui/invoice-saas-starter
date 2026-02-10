@@ -3,6 +3,8 @@ import { InvoiceService } from "@/lib/services/invoice.service";
 import { EmailService } from "@/lib/services/email.service";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 // TODO: Replace with actual auth
 const getUserId = () => "user_demo";
 
