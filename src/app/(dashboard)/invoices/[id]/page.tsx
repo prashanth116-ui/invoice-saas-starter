@@ -1,13 +1,14 @@
 import { auth } from "@clerk/nextjs";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Download, MoreHorizontal } from "lucide-react";
+import { ArrowLeft, MoreHorizontal } from "lucide-react";
 import { InvoiceService } from "@/lib/services/invoice.service";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency, formatDate, getStatusColor } from "@/lib/utils";
 import { RecordPaymentButton } from "@/components/invoices/record-payment-button";
 import { SendInvoiceButton } from "@/components/invoices/send-invoice-button";
+import { DownloadPdfButton } from "@/components/invoices/download-pdf-button";
 
 export const dynamic = "force-dynamic";
 
@@ -58,10 +59,10 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
               invoiceNumber={invoice.invoiceNumber}
               clientEmail={invoice.client.email}
             />
-            <Button variant="outline" size="sm">
-              <Download className="mr-2 h-4 w-4" />
-              Download
-            </Button>
+            <DownloadPdfButton
+              invoiceId={invoice.id}
+              invoiceNumber={invoice.invoiceNumber}
+            />
             <Button variant="ghost" size="icon">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
