@@ -1,9 +1,10 @@
 import { auth } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 import { InvoiceService } from "@/lib/services/invoice.service";
 import { InvoiceCard } from "@/components/invoices/invoice-card";
+import { RecurringInvoices } from "@/components/invoices/recurring-invoices";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -108,12 +109,16 @@ export default async function InvoicesPage({
                 total: Number(invoice.total),
                 amountPaid: Number(invoice.amountPaid),
                 currency: invoice.currency,
+                isRecurring: invoice.isRecurring,
                 client: { name: invoice.client.name },
               }}
             />
           ))}
         </div>
       )}
+
+      {/* Recurring Invoices */}
+      <RecurringInvoices />
 
       {/* Pagination */}
       {result.totalPages > 1 && (

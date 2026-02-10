@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency, calculateInvoiceTotals } from "@/lib/utils";
@@ -26,6 +26,8 @@ const invoiceSchema = z.object({
   discountAmount: z.number().min(0).optional(),
   notes: z.string().optional(),
   terms: z.string().optional(),
+  isRecurring: z.boolean().optional(),
+  recurringInterval: z.enum(["WEEKLY", "BIWEEKLY", "MONTHLY", "QUARTERLY", "YEARLY"]).optional(),
 });
 
 type FormData = z.infer<typeof invoiceSchema>;
@@ -64,6 +66,8 @@ export function InvoiceForm({
       discountAmount: defaultValues?.discountAmount || 0,
       notes: defaultValues?.notes || "",
       terms: defaultValues?.terms || "Payment is due within 30 days.",
+      isRecurring: defaultValues?.isRecurring || false,
+      recurringInterval: defaultValues?.recurringInterval,
     },
   });
 
@@ -75,6 +79,7 @@ export function InvoiceForm({
   const watchLineItems = watch("lineItems");
   const watchTaxRate = watch("taxRate");
   const watchDiscount = watch("discountAmount");
+  const watchIsRecurring = watch("isRecurring");
 
   // Calculate totals
   const totals = calculateInvoiceTotals(
@@ -92,6 +97,8 @@ export function InvoiceForm({
           ...item,
           amount: item.quantity * item.unitPrice,
         })),
+        isRecurring: data.isRecurring,
+        recurringInterval: data.isRecurring ? data.recurringInterval : undefined,
       });
     } finally {
       setIsSubmitting(false);
@@ -261,6 +268,54 @@ export function InvoiceForm({
               </span>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Recurring Options */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <RefreshCw className="h-5 w-5" />
+            Recurring Invoice
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="isRecurring"
+              {...register("isRecurring")}
+              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <label htmlFor="isRecurring" className="text-sm font-medium text-gray-700">
+              Make this a recurring invoice
+            </label>
+          </div>
+
+          {watchIsRecurring && (
+            <div className="ml-7 space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Repeat Every
+                </label>
+                <select
+                  {...register("recurringInterval")}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="">Select interval...</option>
+                  <option value="WEEKLY">Weekly</option>
+                  <option value="BIWEEKLY">Every 2 Weeks</option>
+                  <option value="MONTHLY">Monthly</option>
+                  <option value="QUARTERLY">Quarterly (3 months)</option>
+                  <option value="YEARLY">Yearly</option>
+                </select>
+              </div>
+              <p className="text-sm text-gray-500">
+                A new invoice will be automatically created based on this schedule.
+                The next invoice will be generated after this one is paid or sent.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { Send, Eye, DollarSign, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency, formatDate, getStatusColor, getDueDateStatus } from "@/lib/utils";
 
@@ -14,6 +13,7 @@ interface InvoiceCardProps {
     total: number;
     amountPaid: number;
     currency: string;
+    isRecurring?: boolean;
     client: {
       name: string;
     };
@@ -44,6 +44,12 @@ export function InvoiceCard({
                 >
                   {invoice.status.replace("_", " ")}
                 </span>
+                {invoice.isRecurring && (
+                  <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
+                    <RefreshCw className="h-3 w-3 mr-1" />
+                    Recurring
+                  </span>
+                )}
               </div>
               <p className="text-sm text-gray-600">{invoice.client.name}</p>
               <p className="text-xs text-gray-500">

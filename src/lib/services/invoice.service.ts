@@ -1,6 +1,36 @@
 import { db } from "@/lib/db";
 import { generateInvoiceNumber, calculateInvoiceTotals, serialize } from "@/lib/utils";
-import type { InvoiceFormData, Invoice, InvoiceStatus } from "@/types";
+import type { InvoiceFormData, Invoice, InvoiceStatus, RecurringInterval } from "@/types";
+
+/**
+ * Calculate next recurring date based on interval
+ */
+function calculateNextRecurringDate(
+  fromDate: Date,
+  interval: RecurringInterval
+): Date {
+  const next = new Date(fromDate);
+
+  switch (interval) {
+    case "WEEKLY":
+      next.setDate(next.getDate() + 7);
+      break;
+    case "BIWEEKLY":
+      next.setDate(next.getDate() + 14);
+      break;
+    case "MONTHLY":
+      next.setMonth(next.getMonth() + 1);
+      break;
+    case "QUARTERLY":
+      next.setMonth(next.getMonth() + 3);
+      break;
+    case "YEARLY":
+      next.setFullYear(next.getFullYear() + 1);
+      break;
+  }
+
+  return next;
+}
 
 export class InvoiceService {
   /**
@@ -27,6 +57,12 @@ export class InvoiceService {
       data.discountAmount
     );
 
+    // Calculate next recurring date if recurring
+    const nextRecurringDate =
+      data.isRecurring && data.recurringInterval
+        ? calculateNextRecurringDate(data.issueDate, data.recurringInterval)
+        : null;
+
     // Create invoice with line items
     const invoice = await db.invoice.create({
       data: {
@@ -45,6 +81,7 @@ export class InvoiceService {
         terms: data.terms,
         isRecurring: data.isRecurring || false,
         recurringInterval: data.recurringInterval,
+        nextRecurringDate,
         lineItems: {
           create: data.lineItems.map((item, index) => ({
             description: item.description,
@@ -414,5 +451,199 @@ export class InvoiceService {
       revenue: Number(cr._sum.total) || 0,
       invoices: cr._count.id,
     }));
+  }
+
+  /**
+   * Get all recurring invoices for a user
+   */
+  static async getRecurringInvoices(userId: string) {
+    const invoices = await db.invoice.findMany({
+      where: {
+        userId,
+        isRecurring: true,
+      },
+      include: {
+        client: true,
+        lineItems: true,
+      },
+      orderBy: { nextRecurringDate: "asc" },
+    });
+
+    return serialize(invoices);
+  }
+
+  /**
+   * Get recurring invoices that are due to be generated
+   */
+  static async getDueRecurringInvoices(userId?: string) {
+    const now = new Date();
+
+    const where: any = {
+      isRecurring: true,
+      nextRecurringDate: { lte: now },
+      status: { in: ["PAID", "SENT"] }, // Only generate from sent or paid invoices
+    };
+
+    if (userId) {
+      where.userId = userId;
+    }
+
+    const invoices = await db.invoice.findMany({
+      where,
+      include: {
+        client: true,
+        lineItems: {
+          orderBy: { sortOrder: "asc" },
+        },
+      },
+    });
+
+    return serialize(invoices);
+  }
+
+  /**
+   * Generate next invoice from a recurring invoice
+   */
+  static async generateFromRecurring(
+    sourceInvoiceId: string,
+    userId: string
+  ): Promise<Invoice> {
+    // Get the source invoice
+    const source = await db.invoice.findFirst({
+      where: {
+        id: sourceInvoiceId,
+        userId,
+        isRecurring: true,
+      },
+      include: {
+        lineItems: {
+          orderBy: { sortOrder: "asc" },
+        },
+      },
+    });
+
+    if (!source) {
+      throw new Error("Recurring invoice not found");
+    }
+
+    if (!source.recurringInterval) {
+      throw new Error("Invoice has no recurring interval set");
+    }
+
+    // Get next invoice number
+    const lastInvoice = await db.invoice.findFirst({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      select: { invoiceNumber: true },
+    });
+
+    const sequence = lastInvoice
+      ? parseInt(lastInvoice.invoiceNumber.split("-").pop() || "0") + 1
+      : 1;
+
+    const invoiceNumber = generateInvoiceNumber("INV", sequence);
+
+    // Calculate new dates
+    const issueDate = new Date();
+    const dueDate = source.dueDate
+      ? new Date(
+          issueDate.getTime() +
+            (new Date(source.dueDate).getTime() -
+              new Date(source.issueDate).getTime())
+        )
+      : null;
+
+    const nextRecurringDate = calculateNextRecurringDate(
+      issueDate,
+      source.recurringInterval as RecurringInterval
+    );
+
+    // Create new invoice
+    const newInvoice = await db.invoice.create({
+      data: {
+        userId,
+        clientId: source.clientId,
+        invoiceNumber,
+        status: "DRAFT",
+        issueDate,
+        dueDate,
+        subtotal: source.subtotal,
+        taxRate: source.taxRate,
+        taxAmount: source.taxAmount,
+        discountAmount: source.discountAmount,
+        total: source.total,
+        notes: source.notes,
+        terms: source.terms,
+        isRecurring: true,
+        recurringInterval: source.recurringInterval,
+        nextRecurringDate,
+        lineItems: {
+          create: source.lineItems.map((item, index) => ({
+            description: item.description,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            amount: item.amount,
+            sortOrder: index,
+          })),
+        },
+        activities: {
+          create: {
+            action: "CREATED",
+            metadata: { generatedFrom: sourceInvoiceId },
+          },
+        },
+      },
+      include: {
+        client: true,
+        lineItems: true,
+      },
+    });
+
+    // Update source invoice to remove next recurring date
+    // (it's been "used" to generate the new one)
+    await db.invoice.update({
+      where: { id: sourceInvoiceId },
+      data: { nextRecurringDate: null },
+    });
+
+    return serialize(newInvoice) as unknown as Invoice;
+  }
+
+  /**
+   * Toggle recurring status for an invoice
+   */
+  static async toggleRecurring(
+    invoiceId: string,
+    userId: string,
+    isRecurring: boolean,
+    recurringInterval?: RecurringInterval
+  ): Promise<Invoice> {
+    const invoice = await db.invoice.findFirst({
+      where: { id: invoiceId, userId },
+    });
+
+    if (!invoice) {
+      throw new Error("Invoice not found");
+    }
+
+    const nextRecurringDate =
+      isRecurring && recurringInterval
+        ? calculateNextRecurringDate(new Date(invoice.issueDate), recurringInterval)
+        : null;
+
+    const updated = await db.invoice.update({
+      where: { id: invoiceId },
+      data: {
+        isRecurring,
+        recurringInterval: isRecurring ? recurringInterval : null,
+        nextRecurringDate,
+      },
+      include: {
+        client: true,
+        lineItems: true,
+      },
+    });
+
+    return serialize(updated) as unknown as Invoice;
   }
 }

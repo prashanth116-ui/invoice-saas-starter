@@ -86,6 +86,7 @@ export interface Invoice {
   paidAt?: Date | null;
   isRecurring: boolean;
   recurringInterval?: RecurringInterval | null;
+  nextRecurringDate?: Date | null;
   createdAt: Date;
   activities?: InvoiceActivity[];
 }
