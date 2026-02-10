@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency, formatDate, getStatusColor } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 interface ClientDetailPageProps {
   params: { id: string };
 }

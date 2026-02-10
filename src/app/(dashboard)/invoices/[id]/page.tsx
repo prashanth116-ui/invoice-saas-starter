@@ -9,6 +9,8 @@ import { formatCurrency, formatDate, getStatusColor } from "@/lib/utils";
 import { RecordPaymentButton } from "@/components/invoices/record-payment-button";
 import { SendInvoiceButton } from "@/components/invoices/send-invoice-button";
 
+export const dynamic = "force-dynamic";
+
 interface InvoiceDetailPageProps {
   params: { id: string };
 }

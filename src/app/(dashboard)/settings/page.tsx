@@ -4,6 +4,8 @@ import { UserProfile } from "@clerk/nextjs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export default async function SettingsPage() {
   const { userId } = auth();
 

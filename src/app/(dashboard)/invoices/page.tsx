@@ -7,6 +7,8 @@ import { InvoiceCard } from "@/components/invoices/invoice-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
+export const dynamic = "force-dynamic";
+
 interface SearchParams {
   status?: string;
   page?: string;
