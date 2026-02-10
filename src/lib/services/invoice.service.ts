@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { generateInvoiceNumber, calculateInvoiceTotals } from "@/lib/utils";
+import { generateInvoiceNumber, calculateInvoiceTotals, serialize } from "@/lib/utils";
 import type { InvoiceFormData, Invoice, InvoiceStatus } from "@/types";
 
 export class InvoiceService {
@@ -66,7 +66,7 @@ export class InvoiceService {
       },
     });
 
-    return invoice as unknown as Invoice;
+    return serialize(invoice) as unknown as Invoice;
   }
 
   /**
@@ -90,7 +90,7 @@ export class InvoiceService {
       },
     });
 
-    return invoice as unknown as Invoice;
+    return serialize(invoice) as unknown as Invoice;
   }
 
   /**
@@ -127,13 +127,13 @@ export class InvoiceService {
       db.invoice.count({ where }),
     ]);
 
-    return {
+    return serialize({
       items: invoices,
       total,
       page,
       pageSize,
       totalPages: Math.ceil(total / pageSize),
-    };
+    });
   }
 
   /**
@@ -173,7 +173,7 @@ export class InvoiceService {
       },
     });
 
-    return invoice as unknown as Invoice;
+    return serialize(invoice) as unknown as Invoice;
   }
 
   /**
@@ -232,7 +232,7 @@ export class InvoiceService {
       },
     });
 
-    return updatedInvoice as unknown as Invoice;
+    return serialize(updatedInvoice) as unknown as Invoice;
   }
 
   /**
@@ -317,7 +317,7 @@ export class InvoiceService {
       overdueAmount: Number(overdueInvoices._sum.total) || 0,
       paidThisMonth: Number(paidThisMonth._sum.total) || 0,
       invoiceCount: countsByStatus,
-      recentInvoices,
+      recentInvoices: serialize(recentInvoices),
     };
   }
 

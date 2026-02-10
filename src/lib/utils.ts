@@ -121,3 +121,14 @@ export function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 }
+
+// Serialize Prisma data to plain objects (converts Decimal to number)
+export function serialize<T>(data: T): T {
+  return JSON.parse(JSON.stringify(data, (_, value) => {
+    // Convert Decimal objects to numbers
+    if (value !== null && typeof value === 'object' && 'toNumber' in value) {
+      return Number(value);
+    }
+    return value;
+  }));
+}
