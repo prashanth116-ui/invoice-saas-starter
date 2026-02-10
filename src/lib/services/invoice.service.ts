@@ -332,4 +332,87 @@ export class InvoiceService {
       },
     });
   }
+
+  /**
+   * Get monthly revenue data for charts (last 6 months)
+   */
+  static async getMonthlyRevenue(userId: string) {
+    const months: { month: string; revenue: number; invoices: number }[] = [];
+    const now = new Date();
+
+    for (let i = 5; i >= 0; i--) {
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59);
+
+      const [revenue, count] = await Promise.all([
+        db.invoice.aggregate({
+          where: {
+            userId,
+            status: "PAID",
+            paidAt: {
+              gte: startOfMonth,
+              lte: endOfMonth,
+            },
+          },
+          _sum: { total: true },
+        }),
+        db.invoice.count({
+          where: {
+            userId,
+            status: "PAID",
+            paidAt: {
+              gte: startOfMonth,
+              lte: endOfMonth,
+            },
+          },
+        }),
+      ]);
+
+      const monthName = startOfMonth.toLocaleDateString("en-US", { month: "short" });
+
+      months.push({
+        month: monthName,
+        revenue: Number(revenue._sum.total) || 0,
+        invoices: count,
+      });
+    }
+
+    return months;
+  }
+
+  /**
+   * Get revenue by client for charts
+   */
+  static async getRevenueByClient(userId: string) {
+    const clientRevenue = await db.invoice.groupBy({
+      by: ["clientId"],
+      where: {
+        userId,
+        status: "PAID",
+      },
+      _sum: { total: true },
+      _count: { id: true },
+      orderBy: {
+        _sum: {
+          total: "desc",
+        },
+      },
+      take: 5,
+    });
+
+    // Get client names
+    const clientIds = clientRevenue.map((c) => c.clientId);
+    const clients = await db.client.findMany({
+      where: { id: { in: clientIds } },
+      select: { id: true, name: true },
+    });
+
+    const clientMap = new Map(clients.map((c) => [c.id, c.name]));
+
+    return clientRevenue.map((cr) => ({
+      name: clientMap.get(cr.clientId) || "Unknown",
+      revenue: Number(cr._sum.total) || 0,
+      invoices: cr._count.id,
+    }));
+  }
 }

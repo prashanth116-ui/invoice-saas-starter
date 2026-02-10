@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { InvoiceService } from "@/lib/services/invoice.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
+import { ReportsCharts } from "@/components/reports/reports-charts";
 
 export const dynamic = "force-dynamic";
 
@@ -88,51 +89,37 @@ export default async function ReportsPage() {
         </Card>
       </div>
 
-      {/* Invoice Breakdown */}
+      {/* Charts */}
+      <ReportsCharts />
+
+      {/* Invoice Breakdown (Text) */}
       <Card>
         <CardHeader>
-          <CardTitle>Invoice Status Breakdown</CardTitle>
+          <CardTitle>Invoice Status Summary</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full bg-gray-400" />
-                <span>Draft</span>
-              </div>
-              <span className="font-medium">{stats.invoiceCount.draft}</span>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="w-3 h-3 rounded-full bg-gray-400 mx-auto mb-2" />
+              <p className="text-2xl font-bold">{stats.invoiceCount.draft}</p>
+              <p className="text-sm text-gray-500">Draft</p>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full bg-blue-500" />
-                <span>Sent</span>
-              </div>
-              <span className="font-medium">{stats.invoiceCount.sent}</span>
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
+              <div className="w-3 h-3 rounded-full bg-blue-500 mx-auto mb-2" />
+              <p className="text-2xl font-bold">{stats.invoiceCount.sent}</p>
+              <p className="text-sm text-gray-500">Sent</p>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full bg-green-500" />
-                <span>Paid</span>
-              </div>
-              <span className="font-medium">{stats.invoiceCount.paid}</span>
+            <div className="text-center p-4 bg-green-50 rounded-lg">
+              <div className="w-3 h-3 rounded-full bg-green-500 mx-auto mb-2" />
+              <p className="text-2xl font-bold">{stats.invoiceCount.paid}</p>
+              <p className="text-sm text-gray-500">Paid</p>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full bg-red-500" />
-                <span>Overdue</span>
-              </div>
-              <span className="font-medium">{stats.invoiceCount.overdue}</span>
+            <div className="text-center p-4 bg-red-50 rounded-lg">
+              <div className="w-3 h-3 rounded-full bg-red-500 mx-auto mb-2" />
+              <p className="text-2xl font-bold">{stats.invoiceCount.overdue}</p>
+              <p className="text-sm text-gray-500">Overdue</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Coming Soon */}
-      <Card>
-        <CardContent className="py-12 text-center">
-          <p className="text-gray-500">
-            More detailed reports and charts coming soon.
-          </p>
         </CardContent>
       </Card>
     </div>
