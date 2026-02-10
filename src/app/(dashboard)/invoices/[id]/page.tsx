@@ -1,11 +1,13 @@
 import { auth } from "@clerk/nextjs";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Mail, Download, MoreHorizontal } from "lucide-react";
+import { ArrowLeft, Download, MoreHorizontal } from "lucide-react";
 import { InvoiceService } from "@/lib/services/invoice.service";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency, formatDate, getStatusColor } from "@/lib/utils";
+import { RecordPaymentButton } from "@/components/invoices/record-payment-button";
+import { SendInvoiceButton } from "@/components/invoices/send-invoice-button";
 
 interface InvoiceDetailPageProps {
   params: { id: string };
@@ -49,10 +51,11 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
             >
               {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
             </span>
-            <Button variant="outline" size="sm">
-              <Mail className="mr-2 h-4 w-4" />
-              Send
-            </Button>
+            <SendInvoiceButton
+              invoiceId={invoice.id}
+              invoiceNumber={invoice.invoiceNumber}
+              clientEmail={invoice.client.email}
+            />
             <Button variant="outline" size="sm">
               <Download className="mr-2 h-4 w-4" />
               Download
@@ -209,7 +212,11 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                 </div>
               </div>
               {invoice.status !== "PAID" && (
-                <Button className="w-full mt-4">Record Payment</Button>
+                <RecordPaymentButton
+                  invoiceId={invoice.id}
+                  balanceDue={Number(invoice.total) - Number(invoice.amountPaid)}
+                  currency={invoice.currency}
+                />
               )}
             </CardContent>
           </Card>
