@@ -10,7 +10,7 @@ export default function SignUpPage() {
             card: "shadow-lg",
           },
         }}
-        redirectUrl="/dashboard"
+        afterSignUpUrl="/dashboard"
         signInUrl="/sign-in"
       />
     </div>
