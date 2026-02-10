@@ -138,6 +138,19 @@ export interface InvoiceActivity {
   createdAt: Date;
 }
 
+// User Settings
+export interface UserSettings {
+  companyName?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  country?: string;
+  phone?: string;
+  taxId?: string;
+  currency?: string;
+}
+
 // API Response types
 export interface ApiResponse<T> {
   success: boolean;
